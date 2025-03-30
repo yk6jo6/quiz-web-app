@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>測驗</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>測驗</h1>
+        <div id="quiz">
+            {% for q in questions %}
+                <div class="question" data-question="{{ q.question }}">
+                    <h2>{{ q.question }}</h2>
+                    {% for i, option in q.options|enumerate %}
+                        <button class="option" data-option="{{ option }}">{{ i+1 }}. {{ option }}</button><br>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        <div id="result"></div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            let current = 0;
+            $('.question').hide().eq(0).show();
+            
+            $('.option').click(function() {
+                let question = $(this).parent().data('question');
+                let answer = $(this).data('option');
+                
+                $.ajax({
+                    url: '/check_answer',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ question: question, answer: answer }),
+                    success: function(data) {
+                        $('#result').html(`<p>${data.result}</p><p>詳解：${data.explanation}</p>`);
+                        setTimeout(function() {
+                            $('.question').eq(current).hide();
+                            current++;
+                            if (current < {{ questions|length }}) {
+                                $('.question').eq(current).show();
+                                $('#result').empty();
+                            } else {
+                                $('#result').html('<p>測驗結束！</p><a href="/" class="button">返回主頁</a>');
+                            }
+                        }, 2000);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

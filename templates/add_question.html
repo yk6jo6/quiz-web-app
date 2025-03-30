@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>新增問題</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>新增問題</h1>
+        <form method="post">
+            <label>題目：</label>
+            <input type="text" name="question" required><br>
+            <label>選項（用逗號分隔）：</label>
+            <input type="text" name="options" required><br>
+            <label>正確答案：</label>
+            <input type="text" name="answer" required><br>
+            <label>詳解：</label>
+            <textarea name="explanation" required></textarea><br>
+            <button type="submit" class="button">提交</button>
+            <a href="{{ url_for('home') }}" class="button">返回</a>
+        </form>
+    </div>
+</body>
+</html>

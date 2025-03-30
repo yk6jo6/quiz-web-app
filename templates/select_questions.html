@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>選擇題目</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>選擇測驗題目</h1>
+        <form method="post">
+            {% for i, q in questions|enumerate %}
+                <label><input type="checkbox" name="questions" value="{{ i }}"> {{ i+1 }}. {{ q.question }}</label><br>
+            {% endfor %}
+            <button type="submit" class="button">確認選擇</button>
+            <a href="{{ url_for('home') }}" class="button">返回</a>
+        </form>
+    </div>
+</body>
+</html>

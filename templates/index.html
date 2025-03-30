@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>測驗程式</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>測驗系統</h1>
+        <a href="{{ url_for('add_question') }}" class="button">新增問題</a>
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('import_excel') }}">
+            <input type="file" name="file" accept=".xlsx" class="file-input">
+            <button type="submit" class="button">從 Excel 匯入</button>
+        </form>
+        <a href="{{ url_for('select_questions') }}" class="button">從題庫選題</a>
+        <a href="{{ url_for('start_quiz') }}" class="button">開始測驗</a>
+    </div>
+</body>
+</html>
