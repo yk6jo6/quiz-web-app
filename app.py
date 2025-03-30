@@ -140,5 +140,6 @@ def check_answer():
                 return jsonify({'result': f"錯誤。正確答案是：{q['answer']}", 'explanation': q['explanation']})
     return jsonify({'result': '問題不存在！'}), 400
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
