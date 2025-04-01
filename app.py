@@ -59,7 +59,7 @@ def add_question():
         save_quiz_bank(new_question)
         return redirect(url_for('home'))
     
-    return render_template('index.html')
+    return render_template('add_question.html')
 
 @app.route('/import_txt', methods=['POST'])
 def import_txt():
