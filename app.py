@@ -3,28 +3,30 @@ import pandas as pd
 import json
 import os
 import random
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 app = Flask(__name__)
-QUIZ_FILE = "quiz_bank.json"
+
+# 初始化 Firebase
+if not firebase_admin._apps:
+    cred = credentials.Certificate("quiz-app-firebase-adminsdk.json")
+    firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 # 載入題庫
 def load_quiz_bank():
-    if os.path.exists(QUIZ_FILE):
-        with open(QUIZ_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return []
+    docs = db.collection('questions').stream()
+    return [doc.to_dict() for doc in docs]
 
-# 保存題庫
-def save_quiz_bank(questions):
-    with open(QUIZ_FILE, 'w', encoding='utf-8') as f:
-        json.dump(questions, f, ensure_ascii=False, indent=4)
+# 保存題目到 Firebase
+def save_quiz_bank(question):
+    db.collection('questions').add(question)
 
-# 主頁面
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# 新增問題頁面
 @app.route('/add_question', methods=['GET', 'POST'])
 def add_question():
     if request.method == 'POST':
@@ -39,19 +41,17 @@ def add_question():
         if answer not in options:
             return "正確答案必須是選項之一！", 400
         
-        questions = load_quiz_bank()
-        questions.append({
+        new_question = {
             'question': question,
             'options': options,
             'answer': answer,
             'explanation': explanation
-        })
-        save_quiz_bank(questions)
+        }
+        save_quiz_bank(new_question)
         return redirect(url_for('home'))
     
     return render_template('add_question.html')
 
-# 從 Excel 匯入
 @app.route('/import_excel', methods=['POST'])
 def import_excel():
     if 'file' not in request.files:
@@ -63,11 +63,10 @@ def import_excel():
     
     try:
         df = pd.read_excel(file)
-        required_columns = ['題目', '選項', '正確答案', '詳解']
+        required_columns = ['題目', '選項fry', '正確答案', '詳解']
         if not all(col in df.columns for col in required_columns):
             return "Excel 檔案缺少必要欄位：題目、選項、正確答案、詳解", 400
         
-        questions = load_quiz_bank()
         for _, row in df.iterrows():
             question = str(row['題目'])
             options = [opt.strip() for opt in str(row['選項']).split(',')]
@@ -79,19 +78,17 @@ def import_excel():
             if answer not in options:
                 continue
             
-            questions.append({
+            new_question = {
                 'question': question,
                 'options': options,
                 'answer': answer,
                 'explanation': explanation
-            })
-        
-        save_quiz_bank(questions)
+            }
+            save_quiz_bank(new_question)
         return redirect(url_for('home'))
     except Exception as e:
         return f"匯入失敗：{str(e)}", 400
 
-# 選題頁面
 @app.route('/select_questions', methods=['GET', 'POST'])
 def select_questions():
     questions = load_quiz_bank()
@@ -107,7 +104,6 @@ def select_questions():
     
     return render_template('select_questions.html', questions=questions)
 
-# 開始測驗
 @app.route('/start_quiz', methods=['GET', 'POST'])
 def start_quiz():
     if not os.path.exists('selected_questions.json'):
@@ -122,7 +118,6 @@ def start_quiz():
     random.shuffle(questions)
     return render_template('quiz.html', questions=questions)
 
-# 檢查答案（AJAX）
 @app.route('/check_answer', methods=['POST'])
 def check_answer():
     data = request.json
